@@ -1,2 +1,3 @@
 # DiscoGB
-# DiscoGB
+
+A GameBoy emulator.
