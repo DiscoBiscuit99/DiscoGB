@@ -24,11 +24,11 @@ impl Instruction {
 }
 
 // The 8-bit registers of the GameBoy.
-struct Registers {
-    a: u8, f: u8, // Can also be used as the 16-bit register `AF`.
-    b: u8, c: u8, // Can also be used as the 16-bit register `BC`.
-    d: u8, e: u8, // Can also be used as the 16-bit register `DE`.
-    h: u8, l: u8, // Can also be used as the 16-bit register `HL`.
+pub struct Registers {
+    pub a: u8, pub f: u8, // Can also be used as the 16-bit register `AF`.
+    pub b: u8, pub c: u8, // Can also be used as the 16-bit register `BC`.
+    pub d: u8, pub e: u8, // Can also be used as the 16-bit register `DE`.
+    pub h: u8, pub l: u8, // Can also be used as the 16-bit register `HL`.
 }
 
 impl Registers {
@@ -80,11 +80,15 @@ impl Registers {
 /// Represents the CPU of the GameBoy.
 pub struct Cpu {
     /// The program counter.
-    pc: u16,
+    pub pc: u16,
     /// The stack pointer.
-    sp: u16,
+    pub sp: u16,
     /// The 8-bit registers.
-    regs: Registers,
+    pub regs: Registers,
+    /// The interrupt master enable flag.
+    pub ime: bool,
+    /// The halt flag.
+    pub halt: bool,
     /// The memory.
     mem: Rc<RefCell<Memory>>,
     /// The number of cycles that have elapsed.
@@ -109,6 +113,8 @@ impl Cpu {
             },
             mem,
             cycles: 0,
+            ime: false,
+            halt: false,
         }
     }
 
@@ -116,6 +122,26 @@ impl Cpu {
         loop {
             self.step();
         }
+    }
+
+    /// Returns the value of the `Z` flag.
+    pub fn get_flag_z(&self) -> u8 {
+        self.regs.f & 0b1000_0000
+    }
+
+    /// Returns the value of the `N` flag.
+    pub fn get_flag_n(&self) -> u8 {
+        self.regs.f & 0b0100_0000
+    }
+
+    /// Returns the value of the `H` flag.
+    pub fn get_flag_h(&self) -> u8 {
+        self.regs.f & 0b0010_0000
+    }
+
+    /// Returns the value of the `C` flag.
+    pub fn get_flag_c(&self) -> u8 {
+        self.regs.f & 0b0001_0000
     }
 
     /// Returns an opcode from the memory at the address of the program counter.
@@ -130,7 +156,10 @@ impl Cpu {
         match opcode {
             0x00 => Instruction::new(op00),
             0x31 => Instruction::new(op31),
-            _ => panic!("Unknown opcode: {:#04x}", opcode),
+            _ => {
+                println!("Unknown opcode: {:#04x}", opcode);
+                Instruction::new(op00)
+            },
         }
     }
 
@@ -140,7 +169,7 @@ impl Cpu {
     }
     
     /// Simulates one step of the CPU.
-    fn step(&mut self) {
+    pub fn step(&mut self) {
         let opcode = self.fetch_next();
         let instr = self.decode(opcode);
         self.execute(instr);
