@@ -9,6 +9,7 @@ const DISPLAY_HEIGHT: usize = 144;
 pub struct GuiState {
     gameboy: GameBoy,
     display: Display,
+    step_manually: bool,
 }
 
 impl GuiState {
@@ -20,6 +21,7 @@ impl GuiState {
         Self {
             gameboy: GameBoy::new(),
             display: Display { texture: None },
+            step_manually: true,
         }
     }
 }
@@ -189,12 +191,32 @@ impl eframe::App for GuiState {
             .fixed_size(egui::vec2(175.0, 175.0))
             .show(ctx, |ui| {});
 
+        egui::Window::new("Disassembler")
+            .fixed_size(egui::vec2(175.0, 175.0))
+            .show(ctx, |ui| {
+                ui.horizontal(|ui| {
+                    ui.label("Step manually");
+                    ui.checkbox(&mut self.step_manually, "");
+                });
+            });
+
         egui::Window::new("Sound Registers")
             .fixed_size(egui::vec2(175.0, 175.0))
             .show(ctx, |ui| {});
 
-        self.gameboy.cpu.borrow_mut().step();
-        ctx.request_repaint(); // request call to this update function
+        // Step the CPU if the user has enabled manual stepping
+        if self.step_manually {
+            ctx.input(|i| {
+                if i.key_down(egui::Key::Space) {
+                    self.gameboy.cpu.borrow_mut().step();
+                }
+            });
+        } else {
+            self.gameboy.cpu.borrow_mut().step();
+        }
+
+        // request call to this update function
+        ctx.request_repaint();
     }
 }
 
