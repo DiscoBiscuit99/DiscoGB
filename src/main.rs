@@ -1,3 +1,6 @@
+use std::thread;
+
+use discogb::gameboy::GameBoy;
 use discogb::gui::GuiState;
 
 fn main() {
@@ -6,5 +9,20 @@ fn main() {
         ..Default::default()
     };
 
-    eframe::run_native("DiscoGB", options, Box::new(|_cc| Box::new(GuiState::new()))).unwrap();
+    let state = GuiState::new();
+    let cpu = state.gameboy.cpu.clone();
+    let step_manually = state.step_manually.clone();
+
+    thread::spawn(move || {
+        loop {
+            if !step_manually.read().unwrap().to_owned() {
+                cpu.write().unwrap().step();
+            }
+        }
+    });
+
+    eframe::run_native("DiscoGB", options, Box::new(|_cc| Box::new(state))).unwrap();
+
+    // let mut gameboy = GameBoy::new();
+    // gameboy.run();
 }

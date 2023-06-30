@@ -1,9 +1,14 @@
 /// The 8-bit registers of the GameBoy.
+#[derive(Debug, Copy, Clone)]
 pub struct Registers {
-    pub a: u8, pub f: u8, // Can also be used as the 16-bit register `AF`.
-    pub b: u8, pub c: u8, // Can also be used as the 16-bit register `BC`.
-    pub d: u8, pub e: u8, // Can also be used as the 16-bit register `DE`.
-    pub h: u8, pub l: u8, // Can also be used as the 16-bit register `HL`.
+    pub a: u8,
+    pub f: u8, // Can also be used as the 16-bit register `AF`.
+    pub b: u8,
+    pub c: u8, // Can also be used as the 16-bit register `BC`.
+    pub d: u8,
+    pub e: u8, // Can also be used as the 16-bit register `DE`.
+    pub h: u8,
+    pub l: u8, // Can also be used as the 16-bit register `HL`.
 }
 
 impl Registers {
