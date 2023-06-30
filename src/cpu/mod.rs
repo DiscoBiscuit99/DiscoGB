@@ -90,6 +90,8 @@ impl Cpu {
     fn decode(&mut self, opcode: u8, prev_pc: Option<u16>) -> Instruction {
         match opcode {
             0x00 => Instruction::normal(op_00, prev_pc.unwrap(), opcode, "NOP"),
+            0x0e => Instruction::normal(op_0e, prev_pc.unwrap(), opcode, "LD C, u8"),
+            0x3e => Instruction::normal(op_3e, prev_pc.unwrap(), opcode, "LD A, u8"),
             0x20 => Instruction::normal(op_20, prev_pc.unwrap(), opcode, "JR NZ, i8"),
             0x21 => Instruction::normal(op_21, prev_pc.unwrap(), opcode, "LD HL, u16"),
             0x31 => Instruction::normal(op_31, prev_pc.unwrap(), opcode, "LD SP, u16"),

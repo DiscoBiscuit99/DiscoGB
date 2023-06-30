@@ -1,5 +1,5 @@
-use std::time::Duration;
 use std::sync::{Arc, RwLock};
+use std::time::Duration;
 
 use egui_extras::Size;
 use egui_grid::{Grid, GridBuilder};
@@ -192,7 +192,11 @@ fn registers_ui(state: &mut GuiState, ui: &mut egui::Ui) {
 
 /// Displays the special flags IME and HALT.
 fn special_flags_ui(state: &mut GuiState, ui: &mut egui::Ui) {
-    let ime = if state.gameboy.cpu.read().unwrap().ime { 1 } else { 0 };
+    let ime = if state.gameboy.cpu.read().unwrap().ime {
+        1
+    } else {
+        0
+    };
     let halt = if state.gameboy.cpu.read().unwrap().halt {
         1
     } else {

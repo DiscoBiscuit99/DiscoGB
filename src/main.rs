@@ -13,11 +13,9 @@ fn main() {
     let cpu = state.gameboy.cpu.clone();
     let step_manually = state.step_manually.clone();
 
-    thread::spawn(move || {
-        loop {
-            if !step_manually.read().unwrap().to_owned() {
-                cpu.write().unwrap().step();
-            }
+    thread::spawn(move || loop {
+        if !step_manually.read().unwrap().to_owned() {
+            cpu.write().unwrap().step();
         }
     });
 
