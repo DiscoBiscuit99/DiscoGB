@@ -1,5 +1,3 @@
-use std::cell::RefCell;
-use std::rc::Rc;
 use std::sync::{Arc, RwLock};
 
 use crate::memory::Memory;
@@ -81,7 +79,6 @@ impl Cpu {
     /// Returns an opcode from the memory at the address of the program counter.
     fn fetch_next(&mut self) -> u8 {
         let byte = self.mem.try_read().unwrap().read_byte(self.pc);
-
         self.pc += 1;
         byte
     }
@@ -90,15 +87,25 @@ impl Cpu {
     fn decode(&mut self, opcode: u8, prev_pc: Option<u16>) -> Instruction {
         match opcode {
             0x00 => Instruction::normal(op_00, prev_pc.unwrap(), opcode, "NOP"),
+            // Arithmetic Instructions
+            0x0c => Instruction::normal(op_0c, prev_pc.unwrap(), opcode, "INC C"),
+            0x9f => Instruction::normal(op_9f, prev_pc.unwrap(), opcode, "SBC A, A"),
+            0xfe => Instruction::normal(op_fe, prev_pc.unwrap(), opcode, "CP A, u8"),
+            // Load Instructions
             0x0e => Instruction::normal(op_0e, prev_pc.unwrap(), opcode, "LD C, u8"),
-            0x3e => Instruction::normal(op_3e, prev_pc.unwrap(), opcode, "LD A, u8"),
-            0x20 => Instruction::normal(op_20, prev_pc.unwrap(), opcode, "JR NZ, i8"),
             0x21 => Instruction::normal(op_21, prev_pc.unwrap(), opcode, "LD HL, u16"),
+            0x2e => Instruction::normal(op_2e, prev_pc.unwrap(), opcode, "LD L, u8"),
             0x31 => Instruction::normal(op_31, prev_pc.unwrap(), opcode, "LD SP, u16"),
             0x32 => Instruction::normal(op_32, prev_pc.unwrap(), opcode, "LD (HL-), A"),
-            0x9f => Instruction::normal(op_9f, prev_pc.unwrap(), opcode, "SBC A, A"),
+            0x3e => Instruction::normal(op_3e, prev_pc.unwrap(), opcode, "LD A, u8"),
+            0x77 => Instruction::normal(op_77, prev_pc.unwrap(), opcode, "LD (HL), A"),
+            0xe0 => Instruction::normal(op_e0, prev_pc.unwrap(), opcode, "LD (FF00 + u8), A"),
+            0xe2 => Instruction::normal(op_e2, prev_pc.unwrap(), opcode, "LD (FF00 + C), A"),
+            // Jump Instructions
+            0x20 => Instruction::normal(op_20, prev_pc.unwrap(), opcode, "JR NZ, i8"),
+            // Bitwise Instructions
             0xaf => Instruction::normal(op_af, prev_pc.unwrap(), opcode, "XOR A, A"),
-            0xfe => Instruction::normal(op_fe, prev_pc.unwrap(), opcode, "CP A, u8"),
+            // Prefixed Instructions
             0xcb => {
                 let opcode = self.fetch_next();
                 match opcode {
@@ -127,7 +134,7 @@ impl Cpu {
         );
 
         if instr.is_prefixed {
-            println!("{} (Special)", instr_info);
+            println!("{} (Prefixed)", instr_info);
         } else {
             println!("{}", instr_info);
         }
