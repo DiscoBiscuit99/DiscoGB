@@ -341,9 +341,8 @@ impl eframe::App for GuiState {
                                         ui.label(row_addr);
                                         ui.separator();
 
-                                        let mem_cap = memory_view.len() - 1;
                                         let memory_view_range =
-                                            row * 8..std::cmp::min(row * 8 + 8, mem_cap);
+                                            row * 8..std::cmp::min(row * 8 + 8, memory_view.len());
 
                                         for byte in memory_view[memory_view_range.clone()].iter() {
                                             let byte_color = if *byte > 0x00 {
