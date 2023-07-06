@@ -1,9 +1,10 @@
-use std::cell::RefCell;
-use std::rc::Rc;
 use std::sync::{Arc, RwLock};
 
-use crate::cpu::Cpu;
-use crate::memory::Memory;
+pub mod cpu;
+use cpu::Cpu;
+
+pub mod memory;
+use memory::Memory;
 
 /// A struct representing the GameBoy.
 #[derive(Debug, Clone)]

@@ -70,7 +70,7 @@ impl BankedMemory {
     /// Returns the byte at the given address, taking into account the offset.
     pub fn read(&self, addr: u16) -> u8 {
         if addr - self.offset < self.size / 2 {
-            self.bank0[addr as usize]
+            self.bank0[(addr - self.offset) as usize]
         } else {
             self.bankn[(addr - self.offset - self.size / 2) as usize]
         }
@@ -79,7 +79,7 @@ impl BankedMemory {
     /// Writes the given value at the given address, taking into account the offset.
     fn write(&mut self, addr: u16, value: u8) {
         if addr - self.offset < self.size / 2 {
-            self.bank0[addr as usize] = value;
+            self.bank0[(addr - self.offset) as usize] = value;
         } else {
             self.bankn[(addr - self.offset - self.size / 2) as usize] = value;
         }
@@ -93,7 +93,6 @@ pub struct Memory {
     pub vram: [u8; VRAM_SIZE as usize],
     pub eram: [u8; ERAM_SIZE as usize],
     pub wram: BankedMemory,
-    pub echo: [u8; ECHO_SIZE as usize],
     pub oam: [u8; OAM_SIZE as usize],
     pub io: [u8; IO_SIZE as usize],
     pub hram: [u8; HRAM_SIZE as usize],
@@ -103,26 +102,25 @@ pub struct Memory {
 impl Memory {
     /// Creates a new `Memory` instance.
     pub fn new() -> Self {
-        let mut mem = Self {
+        Self {
             rom: BankedMemory::new(ROM_SIZE, ROM_ADDR),
-            vram: [1; VRAM_SIZE as usize],
+            vram: [0; VRAM_SIZE as usize],
             eram: [0; ERAM_SIZE as usize],
             wram: BankedMemory::new(WRAM_SIZE, WRAM_ADDR),
-            echo: [0; ECHO_SIZE as usize],
             oam: [0; OAM_SIZE as usize],
             io: [0; IO_SIZE as usize],
             hram: [0; HRAM_SIZE as usize],
             ie: 0,
-        };
-        mem.init();
-        mem
+        }
+        .init()
     }
 
     /// Initialize the memory.
-    pub fn init(&mut self) {
+    pub fn init(mut self) -> Self {
         for (addr, byte) in BOOT_ROM.iter().enumerate() {
             self.rom.write(addr as u16, *byte);
         }
+        self
     }
 
     /// Reads a byte from the given address.
@@ -132,7 +130,9 @@ impl Memory {
             VRAM_ADDR..=VRAM_ADDR_END => self.vram[translate_addr(addr, VRAM_ADDR)],
             ERAM_ADDR..=ERAM_ADDR_END => self.eram[translate_addr(addr, ERAM_ADDR)],
             WRAM_ADDR..=WRAM_ADDR_END => self.wram.read(addr),
-            ECHO_ADDR..=ECHO_ADDR_END => self.echo[translate_addr(addr, ECHO_ADDR)],
+            ECHO_ADDR..=ECHO_ADDR_END => self
+                .wram
+                .read(translate_addr(addr, ECHO_ADDR - WRAM_ADDR) as u16),
             OAM_ADDR..=OAM_ADDR_END => self.oam[translate_addr(addr, OAM_ADDR)],
             UNUSED_ADDR..=UNUSED_ADDR_END => panic!(
                 "Attempted to read from unused memory at address {:#06x}",
@@ -158,7 +158,9 @@ impl Memory {
             VRAM_ADDR..=VRAM_ADDR_END => self.vram[translate_addr(addr, VRAM_ADDR)] = value,
             ERAM_ADDR..=ERAM_ADDR_END => self.eram[translate_addr(addr, ERAM_ADDR)] = value,
             WRAM_ADDR..=WRAM_ADDR_END => self.wram.write(addr, value),
-            ECHO_ADDR..=ECHO_ADDR_END => self.echo[translate_addr(addr, ECHO_ADDR)] = value,
+            ECHO_ADDR..=ECHO_ADDR_END => self
+                .wram
+                .write(translate_addr(addr, ECHO_ADDR) as u16, value),
             OAM_ADDR..=OAM_ADDR_END => self.oam[translate_addr(addr, OAM_ADDR)] = value,
             UNUSED_ADDR..=UNUSED_ADDR_END => {
                 panic!(
@@ -170,6 +172,14 @@ impl Memory {
             HRAM_ADDR..=HRAM_ADDR_END => self.hram[translate_addr(addr, HRAM_ADDR)] = value,
             IE_ADDR => self.ie = value,
         }
+    }
+
+    /// Writes a word to the given address.
+    pub fn write_word(&mut self, addr: u16, value: u16) {
+        let low = value as u8;
+        let high = (value >> 8) as u8;
+        self.write_byte(addr, low);
+        self.write_byte(addr + 1, high);
     }
 }
 

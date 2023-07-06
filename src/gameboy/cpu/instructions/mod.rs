@@ -1,19 +1,18 @@
 use super::Cpu;
 
-mod load;
-pub use load::*;
+mod lsm;
+pub use lsm::{x16::*, x8::*};
 
-mod jump;
-pub use jump::*;
+mod control;
+pub use control::{br::*, misc::*};
 
-mod arithmetic;
-pub use arithmetic::*;
+mod alu;
+pub use alu::{x16::*, x8::*};
 
-mod prefixed;
-pub use prefixed::*;
+mod rsb;
+pub use rsb::x8::*;
 
-mod bitwise;
-pub use bitwise::*;
+pub mod util;
 
 /// Represents an instruction of the GameBoy.
 #[derive(Debug, Clone)]
@@ -54,9 +53,4 @@ impl Instruction {
     pub fn prefixed(execute: fn(&mut Cpu), addr: u16, opcode: u8, description: &str) -> Self {
         Self::new(execute, addr, opcode, description, true)
     }
-}
-
-/// NOP
-pub fn op_00(_cpu: &mut Cpu) {
-    // NOP
 }

@@ -4,6 +4,7 @@ use std::time::Duration;
 use egui_extras::Size;
 use egui_grid::{Grid, GridBuilder};
 
+use crate::gameboy::memory::Memory;
 use crate::gameboy::GameBoy;
 
 const DISPLAY_WIDTH: usize = 160;
@@ -31,9 +32,13 @@ pub struct GuiState {
 
 impl GuiState {
     pub fn new() -> Self {
+        let gameboy = GameBoy::new();
         Self {
-            gameboy: GameBoy::new(),
-            display: Display { texture: None },
+            display: Display {
+                texture: None,
+                memory: gameboy.memory.clone(),
+            },
+            gameboy,
             step_manually: Arc::new(RwLock::new(true)),
             selected_memory_view: MemoryView::ROM0,
         }
@@ -48,6 +53,7 @@ impl GuiState {
 }
 
 struct Display {
+    memory: Arc<RwLock<Memory>>,
     texture: Option<egui::TextureHandle>,
 }
 
