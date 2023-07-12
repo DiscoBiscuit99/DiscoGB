@@ -1,4 +1,6 @@
-use crate::gameboy::cpu::instructions::util::{add8, compare, decrement8, increment8, sbc, sub, xor};
+use crate::gameboy::cpu::instructions::util::{
+    add8, compare, decrement8, increment8, sbc, sub, xor,
+};
 use crate::gameboy::cpu::Cpu;
 
 /// INC B
@@ -75,7 +77,7 @@ pub fn op_3d(cpu: &mut Cpu) {
 pub fn op_86(cpu: &mut Cpu) {
     let addr = cpu.regs.hl();
     let byte = cpu.mem.read().unwrap().read_byte(addr);
-    let (new_a, new_flags) = add8(cpu.regs.a, byte, cpu.regs.f);
+    let (new_a, new_flags) = add8(cpu.regs.a, byte);
     cpu.regs.a = new_a;
     cpu.regs.f = new_flags;
 }

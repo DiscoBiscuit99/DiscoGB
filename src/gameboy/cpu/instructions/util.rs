@@ -237,11 +237,11 @@ pub fn decrement16(reg: u16) -> u16 {
 }
 
 /// Utility function for adding a register and a byte.
-pub fn add8(reg: u8, byte: u8, mut flags: u8) -> (u8, u8) {
+pub fn add8(reg: u8, byte: u8) -> (u8, u8) {
     let result = reg.wrapping_add(byte);
 
     // Subtract Flag: cleared as this is an addition operation
-    flags = 0b0000_0000;
+    let mut flags = 0b0000_0000;
 
     // Zero Flag: set if the result is 0
     if result == 0 {

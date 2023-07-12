@@ -60,6 +60,16 @@ struct Display {
 impl Display {
     fn ui(&mut self, ui: &mut egui::Ui) {
         let texture: &egui::TextureHandle = self.texture.get_or_insert_with(|| {
+            let mut addr = 0x8000;
+            let first_sprite = std::iter::repeat_with(|| {
+                let tmp = addr;
+                addr += 1;
+                tmp
+            })
+            .take(16)
+            .map(|addr| self.memory.read().unwrap().read_byte(addr))
+            .collect::<Vec<_>>();
+
             // Create pixel buffer
             let pixels = {
                 let mut pixels = [0; 160 * 144 * 3];
@@ -68,6 +78,7 @@ impl Display {
                     pixels[i * 3 + 1] = 82;
                     pixels[i * 3 + 2] = 82;
                 }
+                pixels[0] = first_sprite[0];
                 pixels
             };
 
@@ -289,7 +300,7 @@ impl eframe::App for GuiState {
 
         egui::Window::new("IO Map")
             .fixed_size(egui::vec2(175.0, 175.0))
-            .show(ctx, |ui| {});
+            .show(ctx, |_ui| {});
 
         egui::Window::new("Memory")
             .default_size(egui::vec2(300.0, 250.0))
@@ -403,15 +414,15 @@ impl eframe::App for GuiState {
 
         egui::Window::new("VRAM Viewer")
             .fixed_size(egui::vec2(175.0, 175.0))
-            .show(ctx, |ui| {});
+            .show(ctx, |_ui| {});
 
         egui::Window::new("Disassembler")
             .fixed_size(egui::vec2(175.0, 175.0))
-            .show(ctx, |ui| {});
+            .show(ctx, |_ui| {});
 
         egui::Window::new("Sound Registers")
             .fixed_size(egui::vec2(175.0, 175.0))
-            .show(ctx, |ui| {});
+            .show(ctx, |_ui| {});
 
         // Step the CPU if the user has enabled manual stepping
         if self.step_manually.read().unwrap().to_owned() {
